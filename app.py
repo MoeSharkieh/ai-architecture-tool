@@ -10,42 +10,23 @@ st.title("🏗️ AI Architecture Tool")
 st.subheader("Your AI assistant for architectural projects")
 
 st.write(
-    "Describe your architectural project below and the AI will help you "
-    "analyze the requirements and organize the project."
+    "Describe your architectural project below. "
+    "The AI will help you analyze the requirements and organize your project."
 )
 
 project_name = st.text_input("Project Name")
 
-project_type = st.selectbox(
-    "Project Type",
-    [
-        "Residential",
-        "Commercial",
-        "Office",
-        "Hospitality",
-        "Educational",
-        "Healthcare",
-        "Mixed Use",
-        "Other"
-    ]
-)
-
 project_description = st.text_area(
     "Describe your project",
-    placeholder="Example: Design a modern 3-bedroom villa on a 500 sqm plot..."
+    placeholder="Example: Residential building, 5 floors, 20 apartments..."
 )
 
-if st.button("Generate Analysis"):
+if st.button("Analyze Project"):
     if project_description:
-        st.success("Project received successfully ✅")
-
-        st.write("### Project Summary")
-        st.write(f"**Project Name:** {project_name or 'Untitled Project'}")
-        st.write(f"**Project Type:** {project_type}")
-        st.write(f"**Description:** {project_description}")
-
-        st.info(
-            "AI analysis will be connected in the next step."
-        )
+        st.success("Project received successfully!")
+        st.write("### Project")
+        st.write(project_name)
+        st.write("### Description")
+        st.write(project_description)
     else:
-        st.warning("Please enter a project description.")
+        st.warning("Please describe your project first.")
