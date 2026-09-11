@@ -11,63 +11,54 @@ st.title("🏗️ AI Architecture Tool")
 st.subheader("AI-powered architectural project analysis")
 
 st.write(
-    "Describe your architectural project below and receive "
+    "Describe your architectural project below, and the AI will generate "
     "an organized professional analysis."
 )
 
 project_name = st.text_input("Project Name")
 
 project_description = st.text_area(
-    "Describe your project",
-    placeholder="Example: Residential building, 5 floors, 20 apartments, Riyadh..."
+    "Project Description",
+    height=200,
+    placeholder=(
+        "Example: A residential villa in Riyadh on a 600 m² plot, "
+        "designed for a family of six..."
+    )
 )
 
 if st.button("Analyze Project"):
-
-    if not project_description:
-        st.warning("Please describe your project first.")
-
+    if not project_name or not project_description:
+        st.warning("Please enter the project name and description.")
     else:
         try:
-            client = OpenAI(
-                api_key=st.secrets["OPENAI_API_KEY"]
-            )
+            client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-            with st.spinner("Analyzing your project..."):
-
+            with st.spinner("Analyzing your architectural project..."):
                 response = client.responses.create(
-                    model="gpt-5.6-luna",
-                    input=f"""
-You are a professional architectural consultant.
-
-Analyze the following architectural project.
-
-Project Name:
-{project_name}
-
-Project Description:
-{project_description}
-
-Prepare a clear professional report including:
-
-1. Project Overview
-2. Main Architectural Requirements
-3. Suggested Spaces and Functions
-4. Design Considerations
-5. Circulation and Accessibility
-6. Sustainability Recommendations
-7. Potential Design Challenges
-8. Recommended Next Steps
-
-Make the analysis useful for an architect preparing an early-stage project proposal.
-"""
+                    model="gpt-4.1-mini",
+                    instructions=(
+                        "You are a professional architect and architectural consultant. "
+                        "Analyze the project clearly and practically. "
+                        "Organize the response using these sections: "
+                        "1. Project Overview, "
+                        "2. Design Concept, "
+                        "3. Space Planning Recommendations, "
+                        "4. Circulation and Accessibility, "
+                        "5. Environmental and Sustainability Strategies, "
+                        "6. Materials and Façade Recommendations, "
+                        "7. Risks and Missing Information, "
+                        "8. Recommended Next Steps. "
+                        "Use professional language and do not invent regulations, "
+                        "dimensions, or site information that the user did not provide."
+                    ),
+                    input=(
+                        f"Project Name: {project_name}\n\n"
+                        f"Project Description:\n{project_description}"
+                    )
                 )
 
             st.success("Analysis completed!")
+            st.markdown(response.output_text)
 
-            st.write("## AI Architectural Analysis")
-            st.write(response.output_text)
-
-        except Exception as e:
-            st.error("Something went wrong.")
-            st.error(str(e))
+        except Exception as error:
+            st.error(f"An error occurred: {error}")
