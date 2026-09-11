@@ -1,3 +1,4 @@
+import os
 import re
 import streamlit as st
 from openai import OpenAI
@@ -14,39 +15,78 @@ def clean_text_for_pdf(text):
     text = text.replace("’", "'")
     text = text.replace("“", '"')
     text = text.replace("”", '"')
-
-    return text.encode(
-        "latin-1",
-        errors="replace"
-    ).decode("latin-1")
+    return text
 
 
-def create_pdf(project_name, analysis):
+def create_pdf(project_name, analysis, language):
     pdf = FPDF()
     pdf.set_auto_page_break(auto=True, margin=15)
     pdf.add_page()
 
-    pdf.set_font("Helvetica", "B", 18)
+    is_arabic = language == "العربية"
+
+    if is_arabic:
+        regular_font = (
+            "/usr/share/fonts/truetype/dejavu/"
+            "DejaVuSans.ttf"
+        )
+        bold_font = (
+            "/usr/share/fonts/truetype/dejavu/"
+            "DejaVuSans-Bold.ttf"
+        )
+
+        if not os.path.exists(regular_font):
+            raise FileNotFoundError(
+                "Arabic font was not found."
+            )
+
+        pdf.add_font(
+            "DejaVu",
+            "",
+            regular_font
+        )
+        pdf.add_font(
+            "DejaVu",
+            "B",
+            bold_font
+        )
+        pdf.set_text_shaping(
+            use_shaping_engine=True,
+            direction="rtl",
+            script="arab",
+            language="ara"
+        )
+
+        font_name = "DejaVu"
+        alignment = "R"
+
+    else:
+        font_name = "Helvetica"
+        alignment = "L"
+
+    pdf.set_font(font_name, "B", 18)
     pdf.set_text_color(22, 50, 79)
     pdf.multi_cell(
         0,
         10,
-        "AI Architecture Tool"
+        "AI Architecture Tool",
+        align=alignment
     )
 
     pdf.ln(3)
 
-    pdf.set_font("Helvetica", "B", 14)
+    pdf.set_font(font_name, "B", 14)
     pdf.set_text_color(37, 99, 235)
     pdf.multi_cell(
         0,
         8,
-        clean_text_for_pdf(project_name)
+        clean_text_for_pdf(project_name),
+        align=alignment
     )
 
     pdf.ln(5)
 
-    pdf.set_font("Helvetica", size=11)
+    pdf.set_font(font_name, size=11)
     pdf.set_text_color(30, 30, 30)
 
     clean_analysis = clean_text_for_pdf(analysis)
@@ -58,7 +98,8 @@ def create_pdf(project_name, analysis):
             pdf.multi_cell(
                 0,
                 7,
-                line
+                line,
+                align=alignment
             )
         else:
             pdf.ln(3)
@@ -115,60 +156,112 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.markdown(
-    '<div class="main-title">🏗️ AI Architecture Tool</div>',
+    '<div class="main-title">'
+    '🏗️ AI Architecture Tool'
+    '</div>',
     unsafe_allow_html=True
 )
 
 st.markdown(
     '<div class="subtitle">'
-    'Professional AI-powered architectural project analysis'
+    'AI-powered architectural project analysis'
     '</div>',
     unsafe_allow_html=True
 )
 
-st.info(
-    "Describe your architectural project below to receive a "
-    "structured professional analysis."
+language = st.selectbox(
+    "Analysis Language / لغة التحليل",
+    ["English", "العربية"]
 )
 
+if language == "العربية":
+    intro_text = (
+        "أدخل معلومات مشروعك المعماري للحصول على "
+        "تحليل احترافي ومنظم."
+    )
+    project_name_label = "اسم المشروع"
+    description_label = "وصف المشروع"
+    placeholder_text = (
+        "مثال: فيلا سكنية من طابقين في الرياض "
+        "مصممة لعائلة مكوّنة من ستة أشخاص..."
+    )
+    button_label = "تحليل المشروع"
+    warning_text = "يرجى إدخال اسم المشروع ووصفه."
+    spinner_text = "جارٍ تحليل المشروع المعماري..."
+    download_label = "📄 تحميل التحليل بصيغة PDF"
+    error_text = "حدث خطأ"
+else:
+    intro_text = (
+        "Describe your architectural project below "
+        "to receive an organized professional analysis."
+    )
+    project_name_label = "Project Name"
+    description_label = "Project Description"
+    placeholder_text = (
+        "Example: A two-story residential villa "
+        "in Riyadh designed for a family of six..."
+    )
+    button_label = "Analyze Project"
+    warning_text = (
+        "Please enter the project name and description."
+    )
+    spinner_text = (
+        "Analyzing your architectural project..."
+    )
+    download_label = "📄 Download Analysis as PDF"
+    error_text = "An error occurred"
+
+st.write(intro_text)
+
 project_name = st.text_input(
-    "Project Name",
-    placeholder="Example: Modern Family Villa in Riyadh"
+    project_name_label
 )
 
 project_description = st.text_area(
-    "Project Description",
-    height=220,
-    placeholder=(
-        "Describe the location, plot size, building type, spaces, "
-        "design requirements, climate, style, and special needs."
-    )
+    description_label,
+    height=200,
+    placeholder=placeholder_text
 )
 
-if st.button("Analyze Project", type="primary"):
-    if not project_name.strip() or not project_description.strip():
-        st.warning(
-            "Please enter the project name and description."
-        )
+if st.button(
+    button_label,
+    type="primary"
+):
+    if (
+        not project_name.strip()
+        or not project_description.strip()
+    ):
+        st.warning(warning_text)
+
     else:
         try:
             client = OpenAI(
                 api_key=st.secrets["OPENAI_API_KEY"]
             )
 
-            with st.spinner(
-                "Analyzing your architectural project..."
-            ):
-                response = client.responses.create(
-                    model="gpt-4.1-mini",
-                    instructions="""
-You are a professional architectural consultant.
+            if language == "العربية":
+                language_instructions = """
+اكتب التحليل كاملًا باللغة العربية الفصحى الواضحة.
 
-Analyze the project using only the information provided by
-the user. Do not invent dimensions, site conditions, budgets,
-building codes, or client requirements.
+ابدأ بالعنوان:
+# تحليل المشروع المعماري
 
-Format the answer using clean Markdown.
+ثم اعرض اسم المشروع بخط عريض.
+
+استخدم عناوين الأقسام التالية حرفيًا:
+
+## 1. نظرة عامة على المشروع
+## 2. الفكرة التصميمية
+## 3. توصيات توزيع الفراغات
+## 4. الحركة وسهولة الوصول
+## 5. الاستراتيجية البيئية والاستدامة
+## 6. توصيات المواد والواجهات
+## 7. المخاطر والمعلومات الناقصة
+## 8. الخطوات التالية الموصى بها
+"""
+            else:
+                language_instructions = """
+Write the entire analysis in clear professional English.
 
 Begin with:
 # Architectural Project Analysis
@@ -185,36 +278,56 @@ Use these exact section headings:
 ## 6. Materials and Façade Recommendations
 ## 7. Risks and Missing Information
 ## 8. Recommended Next Steps
+"""
+
+            with st.spinner(spinner_text):
+                response = client.responses.create(
+                    model="gpt-4.1-mini",
+                    instructions=f"""
+You are a professional architectural consultant.
+
+Analyze the project using only the information
+provided by the user.
+
+Do not invent dimensions, site conditions, budgets,
+building codes, or client requirements.
+
+Format the answer using clean Markdown.
+
+{language_instructions}
 
 Use short paragraphs and bullet points.
 Make important recommendations bold.
-Keep every section clear, practical, and easy to scan.
-Clearly identify assumptions and missing information.
-Use professional but easy-to-understand language.
-Do not add a conclusion after section 8.
+Keep every section clear and practical.
+Clearly identify missing project information.
 """,
-                    input=(
-                        f"Project Name: {project_name}\n\n"
-                        f"Project Description:\n"
-                        f"{project_description}"
-                    )
+                    input=f"""
+Project Name:
+{project_name}
+
+Project Description:
+{project_description}
+"""
                 )
 
             analysis = response.output_text
 
-            st.success("Analysis completed successfully!")
-            st.divider()
+            st.success(
+                "تم إنجاز التحليل بنجاح!"
+                if language == "العربية"
+                else "Analysis completed!"
+            )
 
-            with st.container(border=True):
-                st.markdown(analysis)
+            st.markdown(analysis)
 
             pdf_file = create_pdf(
                 project_name,
-                analysis
+                analysis,
+                language
             )
 
             st.download_button(
-                label="📄 Download Analysis as PDF",
+                label=download_label,
                 data=pdf_file,
                 file_name="architectural_analysis.pdf",
                 mime="application/pdf",
@@ -222,4 +335,6 @@ Do not add a conclusion after section 8.
             )
 
         except Exception as error:
-            st.error(f"An error occurred: {error}")
+            st.error(
+                f"{error_text}: {error}"
+            )
