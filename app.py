@@ -3,6 +3,7 @@ import re
 import streamlit as st
 from openai import OpenAI
 from fpdf import FPDF
+from matplotlib import font_manager
 
 
 def clean_text_for_pdf(text):
@@ -26,13 +27,17 @@ def create_pdf(project_name, analysis, language):
     is_arabic = language == "العربية"
 
     if is_arabic:
-        regular_font = (
-            "/usr/share/fonts/truetype/dejavu/"
-            "DejaVuSans.ttf"
+        regular_font = font_manager.findfont(
+            font_manager.FontProperties(
+                family="DejaVu Sans"
+            )
         )
-        bold_font = (
-            "/usr/share/fonts/truetype/dejavu/"
-            "DejaVuSans-Bold.ttf"
+
+        bold_font = font_manager.findfont(
+            font_manager.FontProperties(
+                family="DejaVu Sans",
+                weight="bold"
+            )
         )
 
         if not os.path.exists(regular_font):
@@ -40,16 +45,23 @@ def create_pdf(project_name, analysis, language):
                 "Arabic font was not found."
             )
 
+        if not os.path.exists(bold_font):
+            raise FileNotFoundError(
+                "Arabic bold font was not found."
+            )
+
         pdf.add_font(
             "DejaVu",
             "",
             regular_font
         )
+
         pdf.add_font(
             "DejaVu",
             "B",
             bold_font
         )
+
         pdf.set_text_shaping(
             use_shaping_engine=True,
             direction="rtl",
@@ -66,6 +78,7 @@ def create_pdf(project_name, analysis, language):
 
     pdf.set_font(font_name, "B", 18)
     pdf.set_text_color(22, 50, 79)
+
     pdf.multi_cell(
         0,
         10,
@@ -77,6 +90,7 @@ def create_pdf(project_name, analysis, language):
 
     pdf.set_font(font_name, "B", 14)
     pdf.set_text_color(37, 99, 235)
+
     pdf.multi_cell(
         0,
         8,
@@ -179,36 +193,48 @@ if language == "العربية":
         "أدخل معلومات مشروعك المعماري للحصول على "
         "تحليل احترافي ومنظم."
     )
+
     project_name_label = "اسم المشروع"
     description_label = "وصف المشروع"
+
     placeholder_text = (
         "مثال: فيلا سكنية من طابقين في الرياض "
         "مصممة لعائلة مكوّنة من ستة أشخاص..."
     )
+
     button_label = "تحليل المشروع"
     warning_text = "يرجى إدخال اسم المشروع ووصفه."
     spinner_text = "جارٍ تحليل المشروع المعماري..."
     download_label = "📄 تحميل التحليل بصيغة PDF"
+    success_text = "تم إنجاز التحليل بنجاح!"
     error_text = "حدث خطأ"
+
 else:
     intro_text = (
         "Describe your architectural project below "
         "to receive an organized professional analysis."
     )
+
     project_name_label = "Project Name"
     description_label = "Project Description"
+
     placeholder_text = (
         "Example: A two-story residential villa "
         "in Riyadh designed for a family of six..."
     )
+
     button_label = "Analyze Project"
+
     warning_text = (
         "Please enter the project name and description."
     )
+
     spinner_text = (
         "Analyzing your architectural project..."
     )
+
     download_label = "📄 Download Analysis as PDF"
+    success_text = "Analysis completed!"
     error_text = "An error occurred"
 
 st.write(intro_text)
@@ -246,7 +272,7 @@ if st.button(
 ابدأ بالعنوان:
 # تحليل المشروع المعماري
 
-ثم اعرض اسم المشروع بخط عريض.
+гыла ثم اعرض اسم المشروع بخط عريض.
 
 استخدم عناوين الأقسام التالية حرفيًا:
 
@@ -261,7 +287,7 @@ if st.button(
 """
             else:
                 language_instructions = """
-Write the entire analysis in clear professional English.
+Writetoj the entire analysis in clear professional English.
 
 Begin with:
 # Architectural Project Analysis
@@ -312,19 +338,14 @@ Project Description:
 
             analysis = response.output_text
 
-            st.success(
-                "تم إنجاز التحليل بنجاح!"
-                if language == "العربية"
-                else "Analysis completed!"
-            )
-
-            st.markdown(analysis)
-
             pdf_file = create_pdf(
                 project_name,
                 analysis,
                 language
             )
+
+            st.success(success_text)
+            st.markdown(analysis)
 
             st.download_button(
                 label=download_label,
