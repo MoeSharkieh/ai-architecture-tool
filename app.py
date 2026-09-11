@@ -163,7 +163,8 @@ st.markdown("""
     }
 
     [data-testid="stTextInput"] input,
-    [data-testid="stTextArea"] textarea {
+    [data-testid="stTextArea"] textarea,
+    [data-testid="stNumberInput"] input {
         border-radius: 10px;
     }
 </style>
@@ -190,16 +191,36 @@ language = st.selectbox(
 
 if language == "العربية":
     intro_text = (
-        "أدخل معلومات مشروعك المعماري للحصول على "
-        "تحليل احترافي ومنظم."
+        "أدخل معلومات مشروعك المعماري للحصول "
+        "على تحليل احترافي ومنظم."
     )
 
-    project_name_label = "اسم المشروع"
-    description_label = "وصف المشروع"
+    project_types = [
+        "سكني",
+        "تجاري",
+        "مكاتب",
+        "ضيافة وفنادق",
+        "تعليمي",
+        "صحي",
+        "ثقافي",
+        "متعدد الاستخدامات",
+        "مشروع آخر"
+    ]
 
-    placeholder_text = (
-        "مثال: فيلا سكنية من طابقين في الرياض "
-        "مصممة لعائلة مكوّنة من ستة أشخاص..."
+    project_type_label = "نوع المشروع"
+    project_name_label = "اسم المشروع"
+    location_label = "المدينة والدولة"
+    plot_area_label = "مساحة الأرض التقريبية (م²)"
+    floors_label = "عدد الطوابق"
+    budget_label = "الميزانية التقريبية (اختياري)"
+    description_label = "متطلبات ووصف المشروع"
+
+    location_placeholder = "مثال: الرياض، السعودية"
+    budget_placeholder = "مثال: 3,000,000 ريال سعودي"
+
+    description_placeholder = (
+        "اذكر الفراغات المطلوبة، عدد المستخدمين، "
+        "الطراز، المناخ، الخصوصية والاحتياجات الخاصة."
     )
 
     button_label = "تحليل المشروع"
@@ -207,20 +228,41 @@ if language == "العربية":
     spinner_text = "جارٍ تحليل المشروع المعماري..."
     download_label = "📄 تحميل التحليل بصيغة PDF"
     success_text = "تم إنجاز التحليل بنجاح!"
-    error_text = "حدث خطأ"
+    pdf_error_text = "تم التحليل، لكن تعذر إنشاء PDF"
+    error_text = "حدث خطأ أثناء التحليل"
 
 else:
     intro_text = (
-        "Describe your architectural project below "
-        "to receive an organized professional analysis."
+        "Enter your project information below to receive "
+        "a structured professional analysis."
     )
 
-    project_name_label = "Project Name"
-    description_label = "Project Description"
+    project_types = [
+        "Residential",
+        "Commercial",
+        "Office",
+        "Hospitality",
+        "Educational",
+        "Healthcare",
+        "Cultural",
+        "Mixed-use",
+        "Other"
+    ]
 
-    placeholder_text = (
-        "Example: A two-story residential villa "
-        "in Riyadh designed for a family of six..."
+    project_type_label = "Project Type"
+    project_name_label = "Project Name"
+    location_label = "City and Country"
+    plot_area_label = "Approximate Plot Area (m²)"
+    floors_label = "Number of Floors"
+    budget_label = "Approximate Budget (Optional)"
+    description_label = "Project Description and Requirements"
+
+    location_placeholder = "Example: Riyadh, Saudi Arabia"
+    budget_placeholder = "Example: SAR 3,000,000"
+
+    description_placeholder = (
+        "Describe the required spaces, number of users, "
+        "style, climate, privacy, and special needs."
     )
 
     button_label = "Analyze Project"
@@ -234,19 +276,54 @@ else:
     )
 
     download_label = "📄 Download Analysis as PDF"
-    success_text = "Analysis completed!"
-    error_text = "An error occurred"
+    success_text = "Analysis completed successfully!"
+
+    pdf_error_text = (
+        "The analysis is complete, but the PDF "
+        "could not be created"
+    )
+
+    error_text = "An error occurred during analysis"
 
 st.write(intro_text)
+
+project_type = st.selectbox(
+    project_type_label,
+    project_types
+)
 
 project_name = st.text_input(
     project_name_label
 )
 
+location = st.text_input(
+    location_label,
+    placeholder=location_placeholder
+)
+
+plot_area = st.number_input(
+    plot_area_label,
+    min_value=0,
+    value=0,
+    step=50
+)
+
+floors = st.number_input(
+    floors_label,
+    min_value=1,
+    value=1,
+    step=1
+)
+
+budget = st.text_input(
+    budget_label,
+    placeholder=budget_placeholder
+)
+
 project_description = st.text_area(
     description_label,
-    height=200,
-    placeholder=placeholder_text
+    height=220,
+    placeholder=description_placeholder
 )
 
 if st.button(
@@ -272,7 +349,7 @@ if st.button(
 ابدأ بالعنوان:
 # تحليل المشروع المعماري
 
-гыла ثم اعرض اسم المشروع بخط عريض.
+ثم اعرض اسم المشروع بخط عريض.
 
 استخدم عناوين الأقسام التالية حرفيًا:
 
@@ -287,7 +364,7 @@ if st.button(
 """
             else:
                 language_instructions = """
-Writetoj the entire analysis in clear professional English.
+Write the entire analysis in clear professional English.
 
 Begin with:
 # Architectural Project Analysis
@@ -301,9 +378,39 @@ Use these exact section headings:
 ## 3. Space Planning Recommendations
 ## 4. Circulation and Accessibility
 ## 5. Environmental and Sustainability Strategy
-## 6. Materials and Façade Recommendations
+## 6. Materials; Materials and Façade Recommendations
 ## 7. Risks and Missing Information
 ## 8. Recommended Next Steps
+"""
+
+            area_information = (
+                f"{plot_area} m²"
+                if plot_area > 0
+                else "Not provided"
+            )
+
+            budget_information = (
+                budget.strip()
+                if budget.strip()
+                else "Not provided"
+            )
+
+            location_information = (
+                location.strip()
+                if location.strip()
+                else "Not provided"
+            )
+
+            project_information = f"""
+Project Type: {project_type}
+Project Name: {project_name}
+Location: {location_information}
+Approximate Plot Area: {area_information}
+Number of Floors: {floors}
+Approximate Budget: {budget_information}
+
+Project Description:
+{project_description}
 """
 
             with st.spinner(spinner_text):
@@ -325,35 +432,39 @@ Format the answer using clean Markdown.
 Use short paragraphs and bullet points.
 Make important recommendations bold.
 Keep every section clear and practical.
-Clearly identify missing project information.
+Clearly identify assumptions and missing information.
+Do not add a conclusion after section 8.
 """,
-                    input=f"""
-Project Name:
-{project_name}
-
-Project Description:
-{project_description}
-"""
+                    input=project_information
                 )
 
             analysis = response.output_text
 
-            pdf_file = create_pdf(
-                project_name,
-                analysis,
-                language
-            )
-
             st.success(success_text)
-            st.markdown(analysis)
+            st.divider()
 
-            st.download_button(
-                label=download_label,
-                data=pdf_file,
-                file_name="architectural_analysis.pdf",
-                mime="application/pdf",
-                use_container_width=True
-            )
+            with st.container(border=True):
+                st.markdown(analysis)
+
+            try:
+                pdf_file = create_pdf(
+                    project_name,
+                    analysis,
+                    language
+                )
+
+                st.download_button(
+                    label=download_label,
+                    data=pdf_file,
+                    file_name="architectural_analysis.pdf",
+                    mime="application/pdf",
+                    use_container_width=True
+                )
+
+            except Exception as pdf_error:
+                st.warning(
+                    f"{pdf_error_text}: {pdf_error}"
+                )
 
         except Exception as error:
             st.error(
