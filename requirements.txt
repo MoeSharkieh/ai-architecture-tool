@@ -3,3 +3,4 @@ openai
 fpdf2[text_shaping]
 matplotlib
 uharfbuzz
+supabase
