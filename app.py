@@ -4,6 +4,7 @@ import streamlit as st
 from openai import OpenAI
 from fpdf import FPDF
 from matplotlib import font_manager
+from supabase import create_client
 
 
 def clean_text_for_pdf(text):
@@ -121,6 +122,16 @@ def create_pdf(project_name, analysis, language):
     return bytes(pdf.output())
 
 
+def get_supabase():
+    if "supabase_client" not in st.session_state:
+        st.session_state.supabase_client = create_client(
+            st.secrets["SUPABASE_URL"],
+            st.secrets["SUPABASE_KEY"]
+        )
+
+    return st.session_state.supabase_client
+
+
 st.set_page_config(
     page_title="AI Architecture Tool",
     page_icon="🏗️",
@@ -146,7 +157,8 @@ st.markdown("""
         margin-bottom: 25px;
     }
 
-    .stButton > button {
+    .stButton > button,
+    .stFormSubmitButton > button {
         width: 100%;
         background-color: #2563eb;
         color: white;
@@ -157,7 +169,8 @@ st.markdown("""
         font-weight: 600;
     }
 
-    .stButton > button:hover {
+    .stButton > button:hover,
+    .stFormSubmitButton > button:hover {
         background-color: #1d4ed8;
         color: white;
     }
@@ -183,6 +196,192 @@ st.markdown(
     '</div>',
     unsafe_allow_html=True
 )
+
+try:
+    supabase = get_supabase()
+
+except Exception as connection_error:
+    st.error(
+        "Supabase connection failed: "
+        f"{connection_error}"
+    )
+    st.stop()
+
+
+if "user_id" not in st.session_state:
+    st.info(
+        "Sign in or create an account to receive "
+        "one free architectural analysis.\n\n"
+        "سجّل الدخول أو أنشئ حسابًا للحصول على "
+        "تحليل معماري مجاني واحد."
+    )
+
+    sign_in_tab, sign_up_tab = st.tabs(
+        [
+            "Sign In / تسجيل الدخول",
+            "Create Account / إنشاء حساب"
+        ]
+    )
+
+    with sign_in_tab:
+        with st.form("sign_in_form"):
+            sign_in_email = st.text_input(
+                "Email / البريد الإلكتروني",
+                key="sign_in_email"
+            )
+
+            sign_in_password = st.text_input(
+                "Password / كلمة المرور",
+                type="password",
+                key="sign_in_password"
+            )
+
+            sign_in_button = st.form_submit_button(
+                "Sign In / تسجيل الدخول"
+            )
+
+        if sign_in_button:
+            if (
+                not sign_in_email.strip()
+                or not sign_in_password
+            ):
+                st.warning(
+                    "Please enter your email and password."
+                )
+
+            else:
+                try:
+                    auth_response = (
+                        supabase.auth.sign_in_with_password(
+                            {
+                                "email": sign_in_email.strip(),
+                                "password": sign_in_password
+                            }
+                        )
+                    )
+
+                    if auth_response.user:
+                        st.session_state.user_id = (
+                            auth_response.user.id
+                        )
+                        st.session_state.user_email = (
+                            auth_response.user.email
+                        )
+
+                        st.rerun()
+
+                except Exception as sign_in_error:
+                    st.error(
+                        "Sign-in failed. Check your email, "
+                        "password, and email confirmation."
+                    )
+
+    with sign_up_tab:
+        with st.form("sign_up_form"):
+            sign_up_email = st.text_input(
+                "Email / البريد الإلكتروني",
+                key="sign_up_email"
+            )
+
+            sign_up_password = st.text_input(
+                "Create Password / إنشاء كلمة مرور",
+                type="password",
+                key="sign_up_password"
+            )
+
+            confirm_password = st.text_input(
+                "Confirm Password / تأكيد كلمة المرور",
+                type="password",
+                key="confirm_password"
+            )
+
+            sign_up_button = st.form_submit_button(
+                "Create Account / إنشاء حساب"
+            )
+
+        if sign_up_button:
+            if not sign_up_email.strip():
+                st.warning(
+                    "Please enter your email address."
+                )
+
+            elif len(sign_up_password) < 8:
+                st.warning(
+                    "Password must contain at least "
+                    "8 characters."
+                )
+
+            elif sign_up_password != confirm_password:
+                st.warning(
+                    "The passwords do not match."
+                )
+
+            else:
+                try:
+                    auth_response = supabase.auth.sign_up(
+                        {
+                            "email": sign_up_email.strip(),
+                            "password": sign_up_password
+                        }
+                    )
+
+                    if auth_response.session:
+                        st.session_state.user_id = (
+                            auth_response.user.id
+                        )
+                        st.session_state.user_email = (
+                            auth_response.user.email
+                        )
+
+                        st.rerun()
+
+                    else:
+                        st.success(
+                            "Account created! Check your email "
+                            "and confirm your account, then sign in."
+                        )
+
+                except Exception as sign_up_error:
+                    st.error(
+                        "Account creation failed. The email "
+                        "may already be registered."
+                    )
+
+    st.stop()
+
+
+account_column, logout_column = st.columns(
+    [3, 1]
+)
+
+with account_column:
+    st.caption(
+        f"Signed in as: "
+        f"{st.session_state.user_email}"
+    )
+
+with logout_column:
+    if st.button(
+        "Logout",
+        use_container_width=True
+    ):
+        try:
+            supabase.auth.sign_out()
+        except Exception:
+            pass
+
+        for session_key in [
+            "supabase_client",
+            "user_id",
+            "user_email"
+        ]:
+            st.session_state.pop(
+                session_key,
+                None
+            )
+
+        st.rerun()
+
 
 language = st.selectbox(
     "Analysis Language / لغة التحليل",
@@ -228,6 +427,10 @@ if language == "العربية":
     spinner_text = "جارٍ تحليل المشروع المعماري..."
     download_label = "📄 تحميل التحليل بصيغة PDF"
     success_text = "تم إنجاز التحليل بنجاح!"
+    limit_text = (
+        "لقد استخدمت تحليلك المجاني. "
+        "ستتوفر الخطط المدفوعة قريبًا."
+    )
     pdf_error_text = "تم التحليل، لكن تعذر إنشاء PDF"
     error_text = "حدث خطأ أثناء التحليل"
 
@@ -277,6 +480,11 @@ else:
 
     download_label = "📄 Download Analysis as PDF"
     success_text = "Analysis completed successfully!"
+
+    limit_text = (
+        "You have used your free analysis. "
+        "Paid plans will be available soon."
+    )
 
     pdf_error_text = (
         "The analysis is complete, but the PDF "
@@ -338,12 +546,22 @@ if st.button(
 
     else:
         try:
-            client = OpenAI(
-                api_key=st.secrets["OPENAI_API_KEY"]
-            )
+            usage_response = supabase.rpc(
+                "consume_analysis"
+            ).execute()
 
-            if language == "العربية":
-                language_instructions = """
+            allowed = usage_response.data is True
+
+            if not allowed:
+                st.warning(limit_text)
+
+            else:
+                client = OpenAI(
+                    api_key=st.secrets["OPENAI_API_KEY"]
+                )
+
+                if language == "العربية":
+                    language_instructions = """
 اكتب التحليل كاملًا باللغة العربية الفصحى الواضحة.
 
 ابدأ بالعنوان:
@@ -362,8 +580,8 @@ if st.button(
 ## 7. المخاطر والمعلومات الناقصة
 ## 8. الخطوات التالية الموصى بها
 """
-            else:
-                language_instructions = """
+                else:
+                    language_instructions = """
 Write the entire analysis in clear professional English.
 
 Begin with:
@@ -378,30 +596,30 @@ Use these exact section headings:
 ## 3. Space Planning Recommendations
 ## 4. Circulation and Accessibility
 ## 5. Environmental and Sustainability Strategy
-## 6. Materials; Materials and Façade Recommendations
+## 6. Materials and Façade Recommendations
 ## 7. Risks and Missing Information
 ## 8. Recommended Next Steps
 """
 
-            area_information = (
-                f"{plot_area} m²"
-                if plot_area > 0
-                else "Not provided"
-            )
+                area_information = (
+                    f"{plot_area} m²"
+                    if plot_area > 0
+                    else "Not provided"
+                )
 
-            budget_information = (
-                budget.strip()
-                if budget.strip()
-                else "Not provided"
-            )
+                budget_information = (
+                    budget.strip()
+                    if budget.strip()
+                    else "Not provided"
+                )
 
-            location_information = (
-                location.strip()
-                if location.strip()
-                else "Not provided"
-            )
+                location_information = (
+                    location.strip()
+                    if location.strip()
+                    else "Not provided"
+                )
 
-            project_information = f"""
+                project_information = f"""
 Project Type: {project_type}
 Project Name: {project_name}
 Location: {location_information}
@@ -413,10 +631,10 @@ Project Description:
 {project_description}
 """
 
-            with st.spinner(spinner_text):
-                response = client.responses.create(
-                    model="gpt-4.1-mini",
-                    instructions=f"""
+                with st.spinner(spinner_text):
+                    response = client.responses.create(
+                        model="gpt-4.1-mini",
+                        instructions=f"""
 You are a professional architectural consultant.
 
 Analyze the project using only the information
@@ -435,36 +653,38 @@ Keep every section clear and practical.
 Clearly identify assumptions and missing information.
 Do not add a conclusion after section 8.
 """,
-                    input=project_information
-                )
+                        input=project_information
+                    )
 
-            analysis = response.output_text
+                analysis = response.output_text
 
-            st.success(success_text)
-            st.divider()
+                st.success(success_text)
+                st.divider()
 
-            with st.container(border=True):
-                st.markdown(analysis)
+                with st.container(border=True):
+                    st.markdown(analysis)
 
-            try:
-                pdf_file = create_pdf(
-                    project_name,
-                    analysis,
-                    language
-                )
+                try:
+                    pdf_file = create_pdf(
+                        project_name,
+                        analysis,
+                        language
+                    )
 
-                st.download_button(
-                    label=download_label,
-                    data=pdf_file,
-                    file_name="architectural_analysis.pdf",
-                    mime="application/pdf",
-                    use_container_width=True
-                )
+                    st.download_button(
+                        label=download_label,
+                        data=pdf_file,
+                        file_name=(
+                            "architectural_analysis.pdf"
+                        ),
+                        mime="application/pdf",
+                        use_container_width=True
+                    )
 
-            except Exception as pdf_error:
-                st.warning(
-                    f"{pdf_error_text}: {pdf_error}"
-                )
+                except Exception as pdf_error:
+                    st.warning(
+                        f"{pdf_error_text}: {pdf_error}"
+                    )
 
         except Exception as error:
             st.error(
