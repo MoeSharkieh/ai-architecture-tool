@@ -104,18 +104,18 @@ def clean_text_for_pdf(text):
     text = re.sub(r"#{1,6}\s*", "", text)
     text = text.replace("**", "")
     text = text.replace("*", "")
-    text = text.replace("â¢", "-")
-    text = text.replace("â", "-")
-    text = text.replace("â", "-")
-    text = text.replace("â", "'")
-    text = text.replace("â", '"')
-    text = text.replace("â", '"')
+    text = text.replace("\u2022", "-")
+    text = text.replace("\u2013", "-")
+    text = text.replace("\u2014", "-")
+    text = text.replace("\u2019", "'")
+    text = text.replace("\u201c", '"')
+    text = text.replace("\u201d", '"')
     text = text.replace("|", "  ")
     return text
 
 
 def get_pdf_font(pdf, language):
-    is_arabic = language == "Ø§ÙØ¹Ø±Ø¨ÙØ©"
+    is_arabic = language == "\u0627\u0644\u0639\u0631\u0628\u064a\u0629"
 
     if not is_arabic:
         return "Helvetica", "L"
@@ -199,14 +199,14 @@ def calculate_space_program(
     rows = []
 
     zone_ar = {
-        "Public": "Ø¹Ø§Ù",
-        "Private": "Ø®Ø§Øµ",
-        "Service": "Ø®Ø¯ÙØ§Øª",
+        "Public": "\u0639\u0627\u0645",
+        "Private": "\u062e\u0627\u0635",
+        "Service": "\u062e\u062f\u0645\u0627\u062a",
     }
     priority_ar = {
-        "Essential": "Ø£Ø³Ø§Ø³Ù",
-        "Recommended": "ÙÙØµÙ Ø¨Ù",
-        "Optional": "Ø§Ø®ØªÙØ§Ø±Ù",
+        "Essential": "\u0623\u0633\u0627\u0633\u064a",
+        "Recommended": "\u0645\u0648\u0635\u0649 \u0628\u0647",
+        "Optional": "\u0627\u062e\u062a\u064a\u0627\u0631\u064a",
     }
 
     for space in spaces:
@@ -216,30 +216,30 @@ def calculate_space_program(
 
         zone = space["zone"]
         priority = space["priority"]
-        if language == "Ø§ÙØ¹Ø±Ø¨ÙØ©":
+        if language == "\u0627\u0644\u0639\u0631\u0628\u064a\u0629":
             zone = zone_ar.get(zone, zone)
             priority = priority_ar.get(priority, priority)
 
         rows.append(
             {
-                "Zone" if language == "English" else "Ø§ÙÙÙØ·ÙØ©": zone,
-                "Space" if language == "English" else "Ø§ÙÙØ±Ø§Øº": space[
+                "Zone" if language == "English" else "\u0627\u0644\u0645\u0646\u0637\u0642\u0629": zone,
+                "Space" if language == "English" else "\u0627\u0644\u0641\u0631\u0627\u063a": space[
                     "space_name"
                 ],
-                "Qty" if language == "English" else "Ø§ÙØ¹Ø¯Ø¯": quantity,
-                "Unit Area (mÂ²)"
+                "Qty" if language == "English" else "\u0627\u0644\u0639\u062f\u062f": quantity,
+                "Unit Area (m\xb2)"
                 if language == "English"
-                else "ÙØ³Ø§Ø­Ø© Ø§ÙÙØ­Ø¯Ø© (ÙÂ²)": round(unit_area, 2),
-                "Net Total (mÂ²)"
+                else "\u0645\u0633\u0627\u062d\u0629 \u0627\u0644\u0648\u062d\u062f\u0629 (\u0645\xb2)": round(unit_area, 2),
+                "Net Total (m\xb2)"
                 if language == "English"
-                else "Ø§ÙØ¥Ø¬ÙØ§ÙÙ Ø§ÙØµØ§ÙÙ (ÙÂ²)": round(net_total, 2),
+                else "\u0627\u0644\u0625\u062c\u0645\u0627\u0644\u064a \u0627\u0644\u0635\u0627\u0641\u064a (\u0645\xb2)": round(net_total, 2),
                 "Priority"
                 if language == "English"
-                else "Ø§ÙØ£ÙÙÙÙØ©": priority,
+                else "\u0627\u0644\u0623\u0648\u0644\u0648\u064a\u0629": priority,
                 "Suggested Floor"
                 if language == "English"
-                else "Ø§ÙØ·Ø§Ø¨Ù Ø§ÙÙÙØªØ±Ø­": space["suggested_floor"],
-                "Notes" if language == "English" else "ÙÙØ§Ø­Ø¸Ø§Øª": space[
+                else "\u0627\u0644\u0637\u0627\u0628\u0642 \u0627\u0644\u0645\u0642\u062a\u0631\u062d": space["suggested_floor"],
+                "Notes" if language == "English" else "\u0645\u0644\u0627\u062d\u0638\u0627\u062a": space[
                     "notes"
                 ],
             }
@@ -247,9 +247,9 @@ def calculate_space_program(
 
     dataframe = pd.DataFrame(rows)
     total_column = (
-        "Net Total (mÂ²)"
+        "Net Total (m\xb2)"
         if language == "English"
-        else "Ø§ÙØ¥Ø¬ÙØ§ÙÙ Ø§ÙØµØ§ÙÙ (ÙÂ²)"
+        else "\u0627\u0644\u0625\u062c\u0645\u0627\u0644\u064a \u0627\u0644\u0635\u0627\u0641\u064a (\u0645\xb2)"
     )
     net_area = float(dataframe[total_column].sum()) if not dataframe.empty else 0
     circulation_area = net_area * circulation_percentage / 100
@@ -295,35 +295,35 @@ def dataframe_to_markdown(dataframe):
 def build_report_markdown(pack, dataframe, metrics, percentages, language):
     circulation_percentage, service_percentage, walls_percentage = percentages
 
-    if language == "Ø§ÙØ¹Ø±Ø¨ÙØ©":
+    if language == "\u0627\u0644\u0639\u0631\u0628\u064a\u0629":
         headings = {
-            "title": "# Ø­Ø²ÙØ© ÙØ§ ÙØ¨Ù Ø§ÙØªØµÙÙÙ Ø§ÙÙØ¹ÙØ§Ø±Ù",
-            "overview": "## 1. ÙÙØ®Øµ Ø§ÙÙØ´Ø±ÙØ¹",
-            "objectives": "## 2. Ø£ÙØ¯Ø§Ù Ø§ÙØªØµÙÙÙ",
-            "assumptions": "## 3. Ø§ÙØ§ÙØªØ±Ø§Ø¶Ø§Øª",
-            "missing": "## 4. Ø§ÙÙØ¹ÙÙÙØ§Øª Ø§ÙÙØ§ÙØµØ©",
-            "program": "## 5. Ø¨Ø±ÙØ§ÙØ¬ Ø§ÙÙØ³Ø§Ø­Ø§Øª",
-            "areas": "## 6. ÙÙØ®Øµ Ø­Ø³Ø§Ø¨Ø§Øª Ø§ÙÙØ³Ø§Ø­Ø§Øª",
-            "zoning": "## 7. Ø§Ø³ØªØ±Ø§ØªÙØ¬ÙØ© ØªÙØ²ÙØ¹ Ø§ÙÙÙØ§Ø·Ù",
-            "circulation": "## 8. Ø§ÙØ­Ø±ÙØ© ÙØ³ÙÙÙØ© Ø§ÙÙØµÙÙ",
-            "environment": "## 9. Ø§ÙØ§Ø³ØªØ±Ø§ØªÙØ¬ÙØ© Ø§ÙØ¨ÙØ¦ÙØ©",
-            "materials": "## 10. Ø§ÙÙÙØ§Ø¯ ÙØ§ÙÙØ§Ø¬ÙØ§Øª",
-            "risks": "## 11. Ø§ÙÙØ®Ø§Ø·Ø± ÙØ§ÙÙØ±Ø§Ø±Ø§Øª Ø§ÙÙØ·ÙÙØ¨Ø©",
-            "steps": "## 12. Ø§ÙØ®Ø·ÙØ§Øª Ø§ÙØªØ§ÙÙØ©",
-            "disclaimer": "## 13. Ø§ÙØªÙØ¨ÙÙ Ø§ÙÙÙÙÙ",
+            "title": "# \u062d\u0632\u0645\u0629 \u0645\u0627 \u0642\u0628\u0644 \u0627\u0644\u062a\u0635\u0645\u064a\u0645 \u0627\u0644\u0645\u0639\u0645\u0627\u0631\u064a",
+            "overview": "## 1. \u0645\u0644\u062e\u0635 \u0627\u0644\u0645\u0634\u0631\u0648\u0639",
+            "objectives": "## 2. \u0623\u0647\u062f\u0627\u0641 \u0627\u0644\u062a\u0635\u0645\u064a\u0645",
+            "assumptions": "## 3. \u0627\u0644\u0627\u0641\u062a\u0631\u0627\u0636\u0627\u062a",
+            "missing": "## 4. \u0627\u0644\u0645\u0639\u0644\u0648\u0645\u0627\u062a \u0627\u0644\u0646\u0627\u0642\u0635\u0629",
+            "program": "## 5. \u0628\u0631\u0646\u0627\u0645\u062c \u0627\u0644\u0645\u0633\u0627\u062d\u0627\u062a",
+            "areas": "## 6. \u0645\u0644\u062e\u0635 \u062d\u0633\u0627\u0628\u0627\u062a \u0627\u0644\u0645\u0633\u0627\u062d\u0627\u062a",
+            "zoning": "## 7. \u0627\u0633\u062a\u0631\u0627\u062a\u064a\u062c\u064a\u0629 \u062a\u0648\u0632\u064a\u0639 \u0627\u0644\u0645\u0646\u0627\u0637\u0642",
+            "circulation": "## 8. \u0627\u0644\u062d\u0631\u0643\u0629 \u0648\u0633\u0647\u0648\u0644\u0629 \u0627\u0644\u0648\u0635\u0648\u0644",
+            "environment": "## 9. \u0627\u0644\u0627\u0633\u062a\u0631\u0627\u062a\u064a\u062c\u064a\u0629 \u0627\u0644\u0628\u064a\u0626\u064a\u0629",
+            "materials": "## 10. \u0627\u0644\u0645\u0648\u0627\u062f \u0648\u0627\u0644\u0648\u0627\u062c\u0647\u0627\u062a",
+            "risks": "## 11. \u0627\u0644\u0645\u062e\u0627\u0637\u0631 \u0648\u0627\u0644\u0642\u0631\u0627\u0631\u0627\u062a \u0627\u0644\u0645\u0637\u0644\u0648\u0628\u0629",
+            "steps": "## 12. \u0627\u0644\u062e\u0637\u0648\u0627\u062a \u0627\u0644\u062a\u0627\u0644\u064a\u0629",
+            "disclaimer": "## 13. \u0627\u0644\u062a\u0646\u0628\u064a\u0647 \u0627\u0644\u0645\u0647\u0646\u064a",
         }
         area_summary = f"""
-- **Ø§ÙÙØ³Ø§Ø­Ø© Ø§ÙØµØ§ÙÙØ© Ø§ÙÙØ¨Ø±ÙØ¬Ø©:** {metrics['net_area']:.1f} ÙÂ²
-- **Ø¨Ø¯Ù Ø§ÙØ­Ø±ÙØ© ({circulation_percentage}%):** {metrics['circulation_area']:.1f} ÙÂ²
-- **Ø¨Ø¯Ù Ø§ÙØ®Ø¯ÙØ§Øª ({service_percentage}%):** {metrics['service_area']:.1f} ÙÂ²
-- **Ø¨Ø¯Ù Ø§ÙØ¬Ø¯Ø±Ø§Ù ÙØ§ÙØ¥ÙØ´Ø§Ø¡ ({walls_percentage}%):** {metrics['walls_area']:.1f} ÙÂ²
-- **Ø§ÙÙØ³Ø§Ø­Ø© Ø§ÙØ¨ÙØ§Ø¦ÙØ© Ø§ÙØªÙØ±ÙØ¨ÙØ©:** {metrics['built_up_area']:.1f} ÙÂ²
-- **ÙØ³Ø¨Ø© Ø§ÙÙÙØ§Ø¡Ø© Ø§ÙØªÙØ±ÙØ¨ÙØ©:** {metrics['efficiency_ratio']:.1f}%
+- **\u0627\u0644\u0645\u0633\u0627\u062d\u0629 \u0627\u0644\u0635\u0627\u0641\u064a\u0629 \u0627\u0644\u0645\u0628\u0631\u0645\u062c\u0629:** {metrics['net_area']:.1f} \u0645\xb2
+- **\u0628\u062f\u0644 \u0627\u0644\u062d\u0631\u0643\u0629 ({circulation_percentage}%):** {metrics['circulation_area']:.1f} \u0645\xb2
+- **\u0628\u062f\u0644 \u0627\u0644\u062e\u062f\u0645\u0627\u062a ({service_percentage}%):** {metrics['service_area']:.1f} \u0645\xb2
+- **\u0628\u062f\u0644 \u0627\u0644\u062c\u062f\u0631\u0627\u0646 \u0648\u0627\u0644\u0625\u0646\u0634\u0627\u0621 ({walls_percentage}%):** {metrics['walls_area']:.1f} \u0645\xb2
+- **\u0627\u0644\u0645\u0633\u0627\u062d\u0629 \u0627\u0644\u0628\u0646\u0627\u0626\u064a\u0629 \u0627\u0644\u062a\u0642\u0631\u064a\u0628\u064a\u0629:** {metrics['built_up_area']:.1f} \u0645\xb2
+- **\u0646\u0633\u0628\u0629 \u0627\u0644\u0643\u0641\u0627\u0621\u0629 \u0627\u0644\u062a\u0642\u0631\u064a\u0628\u064a\u0629:** {metrics['efficiency_ratio']:.1f}%
 """
         disclaimer = (
-            "ÙØ°Ù Ø­Ø²ÙØ© Ø£ÙÙÙØ© ÙØ¯Ø¹Ù ÙØ±Ø­ÙØ© ÙØ§ ÙØ¨Ù Ø§ÙØªØµÙÙÙ. Ø§ÙÙØ³Ø§Ø­Ø§Øª ÙØ§ÙÙØ³Ø¨ "
-            "Ø§ÙÙÙØªØ±Ø­Ø© ØªÙØ¯ÙØ±ÙØ© ÙÙØ§Ø¨ÙØ© ÙÙØªØ¹Ø¯ÙÙØ ÙÙØ§ ØªÙØ«Ù Ø§Ø¹ØªÙØ§Ø¯ÙØ§ ÙÙØ¯Ø³ÙÙØ§ Ø£Ù "
-            "ØªØ­ÙÙÙØ§ ÙÙ ÙÙØ¯ Ø§ÙØ¨ÙØ§Ø¡. ÙØ¬Ø¨ ÙØ±Ø§Ø¬Ø¹ØªÙØ§ ÙÙ ÙØ¹ÙØ§Ø±Ù ÙØ¤ÙÙ ÙØ§ÙØ¬ÙØ§Øª Ø§ÙÙØ®ØªØµØ©."
+            "\u0647\u0630\u0647 \u062d\u0632\u0645\u0629 \u0623\u0648\u0644\u064a\u0629 \u0644\u062f\u0639\u0645 \u0645\u0631\u062d\u0644\u0629 \u0645\u0627 \u0642\u0628\u0644 \u0627\u0644\u062a\u0635\u0645\u064a\u0645. \u0627\u0644\u0645\u0633\u0627\u062d\u0627\u062a \u0648\u0627\u0644\u0646\u0633\u0628 "
+            "\u0627\u0644\u0645\u0642\u062a\u0631\u062d\u0629 \u062a\u0642\u062f\u064a\u0631\u064a\u0629 \u0648\u0642\u0627\u0628\u0644\u0629 \u0644\u0644\u062a\u0639\u062f\u064a\u0644\u060c \u0648\u0644\u0627 \u062a\u0645\u062b\u0644 \u0627\u0639\u062a\u0645\u0627\u062f\u064b\u0627 \u0647\u0646\u062f\u0633\u064a\u064b\u0627 \u0623\u0648 "
+            "\u062a\u062d\u0642\u0642\u064b\u0627 \u0645\u0646 \u0643\u0648\u062f \u0627\u0644\u0628\u0646\u0627\u0621. \u064a\u062c\u0628 \u0645\u0631\u0627\u062c\u0639\u062a\u0647\u0627 \u0645\u0646 \u0645\u0639\u0645\u0627\u0631\u064a \u0645\u0624\u0647\u0644 \u0648\u0627\u0644\u062c\u0647\u0627\u062a \u0627\u0644\u0645\u062e\u062a\u0635\u0629."
         )
     else:
         headings = {
@@ -337,17 +337,17 @@ def build_report_markdown(pack, dataframe, metrics, percentages, language):
             "zoning": "## 7. Functional Zoning Strategy",
             "circulation": "## 8. Circulation and Accessibility",
             "environment": "## 9. Environmental Strategy",
-            "materials": "## 10. Materials and FaÃ§ade",
+            "materials": "## 10. Materials and Fa\xe7ade",
             "risks": "## 11. Risks and Required Decisions",
             "steps": "## 12. Recommended Next Steps",
             "disclaimer": "## 13. Professional Disclaimer",
         }
         area_summary = f"""
-- **Programmed net area:** {metrics['net_area']:.1f} mÂ²
-- **Circulation allowance ({circulation_percentage}%):** {metrics['circulation_area']:.1f} mÂ²
-- **Service allowance ({service_percentage}%):** {metrics['service_area']:.1f} mÂ²
-- **Walls/structure allowance ({walls_percentage}%):** {metrics['walls_area']:.1f} mÂ²
-- **Approximate gross built-up area:** {metrics['built_up_area']:.1f} mÂ²
+- **Programmed net area:** {metrics['net_area']:.1f} m\xb2
+- **Circulation allowance ({circulation_percentage}%):** {metrics['circulation_area']:.1f} m\xb2
+- **Service allowance ({service_percentage}%):** {metrics['service_area']:.1f} m\xb2
+- **Walls/structure allowance ({walls_percentage}%):** {metrics['walls_area']:.1f} m\xb2
+- **Approximate gross built-up area:** {metrics['built_up_area']:.1f} m\xb2
 - **Approximate efficiency ratio:** {metrics['efficiency_ratio']:.1f}%
 """
         disclaimer = (
@@ -416,17 +416,17 @@ def create_excel(dataframe, metrics, percentages, language):
     output = BytesIO()
     circulation_percentage, service_percentage, walls_percentage = percentages
 
-    if language == "Ø§ÙØ¹Ø±Ø¨ÙØ©":
+    if language == "\u0627\u0644\u0639\u0631\u0628\u064a\u0629":
         summary_data = {
-            "Ø§ÙØ¨ÙØ¯": [
-                "Ø§ÙÙØ³Ø§Ø­Ø© Ø§ÙØµØ§ÙÙØ©",
-                f"Ø§ÙØ­Ø±ÙØ© ({circulation_percentage}%)",
-                f"Ø§ÙØ®Ø¯ÙØ§Øª ({service_percentage}%)",
-                f"Ø§ÙØ¬Ø¯Ø±Ø§Ù ÙØ§ÙØ¥ÙØ´Ø§Ø¡ ({walls_percentage}%)",
-                "Ø§ÙÙØ³Ø§Ø­Ø© Ø§ÙØ¨ÙØ§Ø¦ÙØ© Ø§ÙØªÙØ±ÙØ¨ÙØ©",
-                "ÙØ³Ø¨Ø© Ø§ÙÙÙØ§Ø¡Ø©",
+            "\u0627\u0644\u0628\u0646\u062f": [
+                "\u0627\u0644\u0645\u0633\u0627\u062d\u0629 \u0627\u0644\u0635\u0627\u0641\u064a\u0629",
+                f"\u0627\u0644\u062d\u0631\u0643\u0629 ({circulation_percentage}%)",
+                f"\u0627\u0644\u062e\u062f\u0645\u0627\u062a ({service_percentage}%)",
+                f"\u0627\u0644\u062c\u062f\u0631\u0627\u0646 \u0648\u0627\u0644\u0625\u0646\u0634\u0627\u0621 ({walls_percentage}%)",
+                "\u0627\u0644\u0645\u0633\u0627\u062d\u0629 \u0627\u0644\u0628\u0646\u0627\u0626\u064a\u0629 \u0627\u0644\u062a\u0642\u0631\u064a\u0628\u064a\u0629",
+                "\u0646\u0633\u0628\u0629 \u0627\u0644\u0643\u0641\u0627\u0621\u0629",
             ],
-            "Ø§ÙÙÙÙØ©": [
+            "\u0627\u0644\u0642\u064a\u0645\u0629": [
                 round(metrics["net_area"], 2),
                 round(metrics["circulation_area"], 2),
                 round(metrics["service_area"], 2),
@@ -435,8 +435,8 @@ def create_excel(dataframe, metrics, percentages, language):
                 f"{metrics['efficiency_ratio']:.1f}%",
             ],
         }
-        program_sheet = "Ø¨Ø±ÙØ§ÙØ¬ Ø§ÙÙØ³Ø§Ø­Ø§Øª"
-        summary_sheet = "ÙÙØ®Øµ Ø§ÙÙØ³Ø§Ø­Ø§Øª"
+        program_sheet = "\u0628\u0631\u0646\u0627\u0645\u062c \u0627\u0644\u0645\u0633\u0627\u062d\u0627\u062a"
+        summary_sheet = "\u0645\u0644\u062e\u0635 \u0627\u0644\u0645\u0633\u0627\u062d\u0627\u062a"
     else:
         summary_data = {
             "Item": [
@@ -483,7 +483,7 @@ def create_excel(dataframe, metrics, percentages, language):
 
 
 def generate_pack(client, project_information, language):
-    if language == "Ø§ÙØ¹Ø±Ø¨ÙØ©":
+    if language == "\u0627\u0644\u0639\u0631\u0628\u064a\u0629":
         output_instruction = (
             "Write every user-facing value in clear professional Modern "
             "Standard Arabic. Keep the JSON property names unchanged."
@@ -534,7 +534,7 @@ Rules:
 
 st.set_page_config(
     page_title="AI Architecture Tool",
-    page_icon="ðï¸",
+    page_icon="\U0001f3d7\ufe0f",
     layout="wide",
 )
 
@@ -573,7 +573,7 @@ st.markdown(
 )
 
 st.markdown(
-    '<div class="main-title">ðï¸ AI Architecture Tool</div>',
+    '<div class="main-title">\U0001f3d7\ufe0f AI Architecture Tool</div>',
     unsafe_allow_html=True,
 )
 st.markdown(
@@ -592,26 +592,26 @@ except Exception as connection_error:
 if "user_id" not in st.session_state:
     st.info(
         "Sign in or create an account to receive one free pre-design pack.\n\n"
-        "Ø³Ø¬ÙÙ Ø§ÙØ¯Ø®ÙÙ Ø£Ù Ø£ÙØ´Ø¦ Ø­Ø³Ø§Ø¨ÙØ§ ÙÙØ­ØµÙÙ Ø¹ÙÙ Ø­Ø²ÙØ© ÙØ§ ÙØ¨Ù Ø§ÙØªØµÙÙÙ ÙØ¬Ø§ÙÙØ§."
+        "\u0633\u062c\u0651\u0644 \u0627\u0644\u062f\u062e\u0648\u0644 \u0623\u0648 \u0623\u0646\u0634\u0626 \u062d\u0633\u0627\u0628\u064b\u0627 \u0644\u0644\u062d\u0635\u0648\u0644 \u0639\u0644\u0649 \u062d\u0632\u0645\u0629 \u0645\u0627 \u0642\u0628\u0644 \u0627\u0644\u062a\u0635\u0645\u064a\u0645 \u0645\u062c\u0627\u0646\u064b\u0627."
     )
 
     sign_in_tab, sign_up_tab = st.tabs(
-        ["Sign In / ØªØ³Ø¬ÙÙ Ø§ÙØ¯Ø®ÙÙ", "Create Account / Ø¥ÙØ´Ø§Ø¡ Ø­Ø³Ø§Ø¨"]
+        ["Sign In / \u062a\u0633\u062c\u064a\u0644 \u0627\u0644\u062f\u062e\u0648\u0644", "Create Account / \u0625\u0646\u0634\u0627\u0621 \u062d\u0633\u0627\u0628"]
     )
 
     with sign_in_tab:
         with st.form("sign_in_form"):
             sign_in_email = st.text_input(
-                "Email / Ø§ÙØ¨Ø±ÙØ¯ Ø§ÙØ¥ÙÙØªØ±ÙÙÙ",
+                "Email / \u0627\u0644\u0628\u0631\u064a\u062f \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a",
                 key="sign_in_email",
             )
             sign_in_password = st.text_input(
-                "Password / ÙÙÙØ© Ø§ÙÙØ±ÙØ±",
+                "Password / \u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631",
                 type="password",
                 key="sign_in_password",
             )
             sign_in_button = st.form_submit_button(
-                "Sign In / ØªØ³Ø¬ÙÙ Ø§ÙØ¯Ø®ÙÙ"
+                "Sign In / \u062a\u0633\u062c\u064a\u0644 \u0627\u0644\u062f\u062e\u0648\u0644"
             )
 
         if sign_in_button:
@@ -638,21 +638,21 @@ if "user_id" not in st.session_state:
     with sign_up_tab:
         with st.form("sign_up_form"):
             sign_up_email = st.text_input(
-                "Email / Ø§ÙØ¨Ø±ÙØ¯ Ø§ÙØ¥ÙÙØªØ±ÙÙÙ",
+                "Email / \u0627\u0644\u0628\u0631\u064a\u062f \u0627\u0644\u0625\u0644\u0643\u062a\u0631\u0648\u0646\u064a",
                 key="sign_up_email",
             )
             sign_up_password = st.text_input(
-                "Create Password / Ø¥ÙØ´Ø§Ø¡ ÙÙÙØ© ÙØ±ÙØ±",
+                "Create Password / \u0625\u0646\u0634\u0627\u0621 \u0643\u0644\u0645\u0629 \u0645\u0631\u0648\u0631",
                 type="password",
                 key="sign_up_password",
             )
             confirm_password = st.text_input(
-                "Confirm Password / ØªØ£ÙÙØ¯ ÙÙÙØ© Ø§ÙÙØ±ÙØ±",
+                "Confirm Password / \u062a\u0623\u0643\u064a\u062f \u0643\u0644\u0645\u0629 \u0627\u0644\u0645\u0631\u0648\u0631",
                 type="password",
                 key="confirm_password",
             )
             sign_up_button = st.form_submit_button(
-                "Create Account / Ø¥ÙØ´Ø§Ø¡ Ø­Ø³Ø§Ø¨"
+                "Create Account / \u0625\u0646\u0634\u0627\u0621 \u062d\u0633\u0627\u0628"
             )
 
         if sign_up_button:
@@ -707,57 +707,57 @@ with logout_column:
 
 
 language = st.selectbox(
-    "Analysis Language / ÙØºØ© Ø§ÙØªØ­ÙÙÙ",
-    ["English", "Ø§ÙØ¹Ø±Ø¨ÙØ©"],
+    "Analysis Language / \u0644\u063a\u0629 \u0627\u0644\u062a\u062d\u0644\u064a\u0644",
+    ["English", "\u0627\u0644\u0639\u0631\u0628\u064a\u0629"],
 )
 
-if language == "Ø§ÙØ¹Ø±Ø¨ÙØ©":
+if language == "\u0627\u0644\u0639\u0631\u0628\u064a\u0629":
     copy = {
-        "intro": "Ø£Ø¯Ø®Ù ÙØ¹ÙÙÙØ§Øª Ø§ÙÙØ´Ø±ÙØ¹ ÙØ¥ÙØ´Ø§Ø¡ Ø­Ø²ÙØ© Ø£ÙÙÙØ© ÙÙØ¸ÙØ© ÙÙØ§Ø¨ÙØ© ÙÙØªØ¹Ø¯ÙÙ.",
+        "intro": "\u0623\u062f\u062e\u0644 \u0645\u0639\u0644\u0648\u0645\u0627\u062a \u0627\u0644\u0645\u0634\u0631\u0648\u0639 \u0644\u0625\u0646\u0634\u0627\u0621 \u062d\u0632\u0645\u0629 \u0623\u0648\u0644\u064a\u0629 \u0645\u0646\u0638\u0645\u0629 \u0648\u0642\u0627\u0628\u0644\u0629 \u0644\u0644\u062a\u0639\u062f\u064a\u0644.",
         "project_types": [
-            "Ø³ÙÙÙ",
-            "ØªØ¬Ø§Ø±Ù",
-            "ÙÙØ§ØªØ¨",
-            "Ø¶ÙØ§ÙØ© ÙÙÙØ§Ø¯Ù",
-            "ØªØ¹ÙÙÙÙ",
-            "ØµØ­Ù",
-            "Ø«ÙØ§ÙÙ",
-            "ÙØªØ¹Ø¯Ø¯ Ø§ÙØ§Ø³ØªØ®Ø¯Ø§ÙØ§Øª",
-            "ÙØ´Ø±ÙØ¹ Ø¢Ø®Ø±",
+            "\u0633\u0643\u0646\u064a",
+            "\u062a\u062c\u0627\u0631\u064a",
+            "\u0645\u0643\u0627\u062a\u0628",
+            "\u0636\u064a\u0627\u0641\u0629 \u0648\u0641\u0646\u0627\u062f\u0642",
+            "\u062a\u0639\u0644\u064a\u0645\u064a",
+            "\u0635\u062d\u064a",
+            "\u062b\u0642\u0627\u0641\u064a",
+            "\u0645\u062a\u0639\u062f\u062f \u0627\u0644\u0627\u0633\u062a\u062e\u062f\u0627\u0645\u0627\u062a",
+            "\u0645\u0634\u0631\u0648\u0639 \u0622\u062e\u0631",
         ],
-        "project_type": "ÙÙØ¹ Ø§ÙÙØ´Ø±ÙØ¹",
-        "project_name": "Ø§Ø³Ù Ø§ÙÙØ´Ø±ÙØ¹",
-        "location": "Ø§ÙÙØ¯ÙÙØ© ÙØ§ÙØ¯ÙÙØ©",
-        "plot_area": "ÙØ³Ø§Ø­Ø© Ø§ÙØ£Ø±Ø¶ Ø§ÙØªÙØ±ÙØ¨ÙØ© (ÙÂ²)",
-        "floors": "Ø¹Ø¯Ø¯ Ø§ÙØ·ÙØ§Ø¨Ù",
-        "budget": "Ø§ÙÙÙØ²Ø§ÙÙØ© Ø§ÙØªÙØ±ÙØ¨ÙØ© (Ø§Ø®ØªÙØ§Ø±Ù)",
-        "description": "ÙØªØ·ÙØ¨Ø§Øª ÙÙØµÙ Ø§ÙÙØ´Ø±ÙØ¹",
-        "location_placeholder": "ÙØ«Ø§Ù: Ø§ÙØ±ÙØ§Ø¶Ø Ø§ÙØ³Ø¹ÙØ¯ÙØ©",
-        "budget_placeholder": "ÙØ«Ø§Ù: 3,000,000 Ø±ÙØ§Ù Ø³Ø¹ÙØ¯Ù",
+        "project_type": "\u0646\u0648\u0639 \u0627\u0644\u0645\u0634\u0631\u0648\u0639",
+        "project_name": "\u0627\u0633\u0645 \u0627\u0644\u0645\u0634\u0631\u0648\u0639",
+        "location": "\u0627\u0644\u0645\u062f\u064a\u0646\u0629 \u0648\u0627\u0644\u062f\u0648\u0644\u0629",
+        "plot_area": "\u0645\u0633\u0627\u062d\u0629 \u0627\u0644\u0623\u0631\u0636 \u0627\u0644\u062a\u0642\u0631\u064a\u0628\u064a\u0629 (\u0645\xb2)",
+        "floors": "\u0639\u062f\u062f \u0627\u0644\u0637\u0648\u0627\u0628\u0642",
+        "budget": "\u0627\u0644\u0645\u064a\u0632\u0627\u0646\u064a\u0629 \u0627\u0644\u062a\u0642\u0631\u064a\u0628\u064a\u0629 (\u0627\u062e\u062a\u064a\u0627\u0631\u064a)",
+        "description": "\u0645\u062a\u0637\u0644\u0628\u0627\u062a \u0648\u0648\u0635\u0641 \u0627\u0644\u0645\u0634\u0631\u0648\u0639",
+        "location_placeholder": "\u0645\u062b\u0627\u0644: \u0627\u0644\u0631\u064a\u0627\u0636\u060c \u0627\u0644\u0633\u0639\u0648\u062f\u064a\u0629",
+        "budget_placeholder": "\u0645\u062b\u0627\u0644: 3,000,000 \u0631\u064a\u0627\u0644 \u0633\u0639\u0648\u062f\u064a",
         "description_placeholder": (
-            "Ø§Ø°ÙØ± Ø§ÙÙØ³ØªØ®Ø¯ÙÙÙ ÙØ§ÙÙØ±Ø§ØºØ§Øª ÙØ§ÙØ·Ø±Ø§Ø² ÙØ§ÙÙÙØ§Ø® ÙØ§ÙØ®ØµÙØµÙØ© "
-            "ÙØ£Ù Ø§Ø­ØªÙØ§Ø¬Ø§Øª Ø®Ø§ØµØ©."
+            "\u0627\u0630\u0643\u0631 \u0627\u0644\u0645\u0633\u062a\u062e\u062f\u0645\u064a\u0646 \u0648\u0627\u0644\u0641\u0631\u0627\u063a\u0627\u062a \u0648\u0627\u0644\u0637\u0631\u0627\u0632 \u0648\u0627\u0644\u0645\u0646\u0627\u062e \u0648\u0627\u0644\u062e\u0635\u0648\u0635\u064a\u0629 "
+            "\u0648\u0623\u064a \u0627\u062d\u062a\u064a\u0627\u062c\u0627\u062a \u062e\u0627\u0635\u0629."
         ),
-        "assumptions": "Ø§ÙØªØ±Ø§Ø¶Ø§Øª Ø­Ø³Ø§Ø¨ Ø§ÙÙØ³Ø§Ø­Ø§Øª",
+        "assumptions": "\u0627\u0641\u062a\u0631\u0627\u0636\u0627\u062a \u062d\u0633\u0627\u0628 \u0627\u0644\u0645\u0633\u0627\u062d\u0627\u062a",
         "assumptions_help": (
-            "ÙØ°Ù ÙØ³Ø¨ Ø£ÙÙÙØ© ÙØ§Ø¨ÙØ© ÙÙØªØ¹Ø¯ÙÙ ÙÙÙØ³Øª ÙØªØ·ÙØ¨Ø§Øª ÙÙØ¯ ÙØ¹ØªÙØ¯Ø©."
+            "\u0647\u0630\u0647 \u0646\u0633\u0628 \u0623\u0648\u0644\u064a\u0629 \u0642\u0627\u0628\u0644\u0629 \u0644\u0644\u062a\u0639\u062f\u064a\u0644 \u0648\u0644\u064a\u0633\u062a \u0645\u062a\u0637\u0644\u0628\u0627\u062a \u0643\u0648\u062f \u0645\u0639\u062a\u0645\u062f\u0629."
         ),
-        "circulation": "ÙØ³Ø¨Ø© Ø§ÙØ­Ø±ÙØ© (%)",
-        "services": "ÙØ³Ø¨Ø© Ø§ÙØ®Ø¯ÙØ§Øª (%)",
-        "walls": "ÙØ³Ø¨Ø© Ø§ÙØ¬Ø¯Ø±Ø§Ù ÙØ§ÙØ¥ÙØ´Ø§Ø¡ (%)",
-        "button": "Ø¥ÙØ´Ø§Ø¡ Ø­Ø²ÙØ© ÙØ§ ÙØ¨Ù Ø§ÙØªØµÙÙÙ",
-        "warning": "ÙØ±Ø¬Ù Ø¥Ø¯Ø®Ø§Ù Ø§Ø³Ù Ø§ÙÙØ´Ø±ÙØ¹ ÙÙØµÙÙ.",
-        "spinner": "Ø¬Ø§Ø±Ù Ø¥Ø¹Ø¯Ø§Ø¯ Ø§ÙØ­Ø²ÙØ© Ø§ÙÙØ¹ÙØ§Ø±ÙØ© ÙØ§ÙØ­Ø³Ø§Ø¨Ø§Øª...",
-        "success": "ØªÙ Ø¥ÙØ´Ø§Ø¡ Ø­Ø²ÙØ© ÙØ§ ÙØ¨Ù Ø§ÙØªØµÙÙÙ Ø¨ÙØ¬Ø§Ø­!",
-        "limit": "ÙÙØ¯ Ø§Ø³ØªØ®Ø¯ÙØª Ø­Ø²ÙØªÙ Ø§ÙÙØ¬Ø§ÙÙØ©. Ø³ØªØªÙÙØ± Ø§ÙØ®Ø·Ø· Ø§ÙÙØ¯ÙÙØ¹Ø© ÙØ±ÙØ¨ÙØ§.",
-        "error": "Ø­Ø¯Ø« Ø®Ø·Ø£ Ø£Ø«ÙØ§Ø¡ Ø¥ÙØ´Ø§Ø¡ Ø§ÙØ­Ø²ÙØ©",
-        "program": "Ø¨Ø±ÙØ§ÙØ¬ Ø§ÙÙØ³Ø§Ø­Ø§Øª Ø§ÙÙÙØªØ±Ø­",
-        "summary": "ÙÙØ®Øµ Ø§ÙÙØ³Ø§Ø­Ø§Øª",
-        "net": "Ø§ÙÙØ³Ø§Ø­Ø© Ø§ÙØµØ§ÙÙØ©",
-        "gross": "Ø§ÙÙØ³Ø§Ø­Ø© Ø§ÙØ¨ÙØ§Ø¦ÙØ© Ø§ÙØªÙØ±ÙØ¨ÙØ©",
-        "efficiency": "Ø§ÙÙÙØ§Ø¡Ø© Ø§ÙØªÙØ±ÙØ¨ÙØ©",
-        "pdf": "ð ØªØ­ÙÙÙ Ø§ÙØ­Ø²ÙØ© PDF",
-        "excel": "ð ØªØ­ÙÙÙ Ø¨Ø±ÙØ§ÙØ¬ Ø§ÙÙØ³Ø§Ø­Ø§Øª Excel",
+        "circulation": "\u0646\u0633\u0628\u0629 \u0627\u0644\u062d\u0631\u0643\u0629 (%)",
+        "services": "\u0646\u0633\u0628\u0629 \u0627\u0644\u062e\u062f\u0645\u0627\u062a (%)",
+        "walls": "\u0646\u0633\u0628\u0629 \u0627\u0644\u062c\u062f\u0631\u0627\u0646 \u0648\u0627\u0644\u0625\u0646\u0634\u0627\u0621 (%)",
+        "button": "\u0625\u0646\u0634\u0627\u0621 \u062d\u0632\u0645\u0629 \u0645\u0627 \u0642\u0628\u0644 \u0627\u0644\u062a\u0635\u0645\u064a\u0645",
+        "warning": "\u064a\u0631\u062c\u0649 \u0625\u062f\u062e\u0627\u0644 \u0627\u0633\u0645 \u0627\u0644\u0645\u0634\u0631\u0648\u0639 \u0648\u0648\u0635\u0641\u0647.",
+        "spinner": "\u062c\u0627\u0631\u064d \u0625\u0639\u062f\u0627\u062f \u0627\u0644\u062d\u0632\u0645\u0629 \u0627\u0644\u0645\u0639\u0645\u0627\u0631\u064a\u0629 \u0648\u0627\u0644\u062d\u0633\u0627\u0628\u0627\u062a...",
+        "success": "\u062a\u0645 \u0625\u0646\u0634\u0627\u0621 \u062d\u0632\u0645\u0629 \u0645\u0627 \u0642\u0628\u0644 \u0627\u0644\u062a\u0635\u0645\u064a\u0645 \u0628\u0646\u062c\u0627\u062d!",
+        "limit": "\u0644\u0642\u062f \u0627\u0633\u062a\u062e\u062f\u0645\u062a \u062d\u0632\u0645\u062a\u0643 \u0627\u0644\u0645\u062c\u0627\u0646\u064a\u0629. \u0633\u062a\u062a\u0648\u0641\u0631 \u0627\u0644\u062e\u0637\u0637 \u0627\u0644\u0645\u062f\u0641\u0648\u0639\u0629 \u0642\u0631\u064a\u0628\u064b\u0627.",
+        "error": "\u062d\u062f\u062b \u062e\u0637\u0623 \u0623\u062b\u0646\u0627\u0621 \u0625\u0646\u0634\u0627\u0621 \u0627\u0644\u062d\u0632\u0645\u0629",
+        "program": "\u0628\u0631\u0646\u0627\u0645\u062c \u0627\u0644\u0645\u0633\u0627\u062d\u0627\u062a \u0627\u0644\u0645\u0642\u062a\u0631\u062d",
+        "summary": "\u0645\u0644\u062e\u0635 \u0627\u0644\u0645\u0633\u0627\u062d\u0627\u062a",
+        "net": "\u0627\u0644\u0645\u0633\u0627\u062d\u0629 \u0627\u0644\u0635\u0627\u0641\u064a\u0629",
+        "gross": "\u0627\u0644\u0645\u0633\u0627\u062d\u0629 \u0627\u0644\u0628\u0646\u0627\u0626\u064a\u0629 \u0627\u0644\u062a\u0642\u0631\u064a\u0628\u064a\u0629",
+        "efficiency": "\u0627\u0644\u0643\u0641\u0627\u0621\u0629 \u0627\u0644\u062a\u0642\u0631\u064a\u0628\u064a\u0629",
+        "pdf": "\U0001f4c4 \u062a\u062d\u0645\u064a\u0644 \u0627\u0644\u062d\u0632\u0645\u0629 PDF",
+        "excel": "\U0001f4ca \u062a\u062d\u0645\u064a\u0644 \u0628\u0631\u0646\u0627\u0645\u062c \u0627\u0644\u0645\u0633\u0627\u062d\u0627\u062a Excel",
     }
 else:
     copy = {
@@ -779,7 +779,7 @@ else:
         "project_type": "Project Type",
         "project_name": "Project Name",
         "location": "City and Country",
-        "plot_area": "Approximate Plot Area (mÂ²)",
+        "plot_area": "Approximate Plot Area (m\xb2)",
         "floors": "Number of Floors",
         "budget": "Approximate Budget (Optional)",
         "description": "Project Description and Requirements",
@@ -810,8 +810,8 @@ else:
         "net": "Programmed Net Area",
         "gross": "Approx. Gross Built-up Area",
         "efficiency": "Approx. Efficiency",
-        "pdf": "ð Download Pack as PDF",
-        "excel": "ð Download Space Program as Excel",
+        "pdf": "\U0001f4c4 Download Pack as PDF",
+        "excel": "\U0001f4ca Download Space Program as Excel",
     }
 
 st.write(copy["intro"])
@@ -888,7 +888,7 @@ if st.button(copy["button"], type="primary"):
             else:
                 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
                 area_information = (
-                    f"{plot_area} mÂ²" if plot_area > 0 else "Not provided"
+                    f"{plot_area} m\xb2" if plot_area > 0 else "Not provided"
                 )
                 budget_information = budget.strip() or "Not provided"
                 location_information = location.strip() or "Not provided"
@@ -951,10 +951,10 @@ if "generated_pack" in st.session_state:
 
         st.subheader(copy["summary"])
         metric_columns = st.columns(3)
-        metric_columns[0].metric(copy["net"], f"{metrics['net_area']:.1f} mÂ²")
+        metric_columns[0].metric(copy["net"], f"{metrics['net_area']:.1f} m\xb2")
         metric_columns[1].metric(
             copy["gross"],
-            f"{metrics['built_up_area']:.1f} mÂ²",
+            f"{metrics['built_up_area']:.1f} m\xb2",
         )
         metric_columns[2].metric(
             copy["efficiency"],
