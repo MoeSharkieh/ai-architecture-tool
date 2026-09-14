@@ -1,6 +1,7 @@
 streamlit
 openai
-fpdf2[text_shaping]
+fpdf2
 matplotlib
-uharfbuzz
 supabase
+pandas
+openpyxl
